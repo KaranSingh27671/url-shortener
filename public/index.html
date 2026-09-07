@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Shortly — URL Shortener</title>
+
+  <meta
+    name="description"
+    content="Shorten long URLs instantly and track your link analytics."
+  />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #070b14;
+      --card: rgba(17, 24, 39, 0.72);
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(
+          circle at 15% 20%,
+          rgba(124, 58, 237, 0.18),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 85% 75%,
+          rgba(59, 130, 246, 0.12),
+          transparent 30%
+        ),
+        var(--bg);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: auto;
+    }
+
+    /* NAVBAR */
+
+    nav {
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 21px;
+      font-weight: 800;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      box-shadow: 0 8px 30px rgba(124, 58, 237, 0.35);
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+    }
+
+    /* HERO */
+
+    .hero {
+      padding: 85px 0 65px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      border-radius: 999px;
+      background: rgba(139, 92, 246, 0.08);
+      color: var(--accent-light);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+
+    .hero h1 {
+      max-width: 800px;
+      margin: auto;
+      font-size: clamp(48px, 7vw, 82px);
+      line-height: 0.98;
+      letter-spacing: -4px;
+      font-weight: 850;
+    }
+
+    .gradient-text {
+      display: block;
+      background: linear-gradient(
+        90deg,
+        #c4b5fd,
+        #8b5cf6,
+        #60a5fa
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      max-width: 600px;
+      margin: 28px auto 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    /* SHORTENER */
+
+    .shortener {
+      max-width: 760px;
+      margin: 45px auto 0;
+      padding: 9px;
+      display: flex;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.8);
+      box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.3),
+        0 0 50px rgba(124, 58, 237, 0.08);
+      backdrop-filter: blur(20px);
+    }
+
+    .input-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .link-icon {
+      padding-left: 16px;
+      color: #64748b;
+      font-size: 18px;
+    }
+
+    #urlInput {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+      padding: 17px 14px;
+      font-size: 15px;
+    }
+
+    #urlInput::placeholder {
+      color: #64748b;
+    }
+
+    #shortenButton {
+      border: none;
+      border-radius: 12px;
+      padding: 0 25px;
+      min-height: 52px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    #shortenButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(124, 58, 237, 0.4);
+    }
+
+    #shortenButton:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hint {
+      margin-top: 13px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    /* MESSAGE */
+
+    .message {
+      max-width: 760px;
+      margin: 15px auto 0;
+      padding: 13px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error {
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .success {
+      color: #86efac;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    /* RESULT */
+
+    .result {
+      max-width: 760px;
+      margin: 25px auto 0;
+      padding: 24px;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      display: none;
+      animation: slideUp 0.35s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    .short-url-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    #shortUrl {
+      color: var(--accent-light);
+      font-size: 20px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .result-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .copy-button,
+    .analytics-button {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: white;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+
+    .copy-button:hover,
+    .analytics-button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .copy-button.copied {
+      color: #86efac;
+    }
+
+    .analytics-button {
+      color: var(--accent-light);
+    }
+
+    .result-meta {
+      display: grid;
+      grid-template-columns: 1fr 130px;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .meta-box {
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      min-width: 0;
+    }
+
+    .meta-label {
+      display: block;
+      color: #64748b;
+      font-size: 11px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .meta-value {
+      color: #cbd5e1;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* FEATURES */
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 75px;
+      text-align: left;
+    }
+
+    .feature {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: rgba(15, 23, 42, 0.45);
+      transition: 0.25s ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-4px);
+      border-color: rgba(167, 139, 250, 0.25);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      margin-bottom: 17px;
+      background: rgba(139, 92, 246, 0.1);
+      font-size: 19px;
+    }
+
+    .feature h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* FOOTER */
+
+    footer {
+      padding: 55px 0 35px;
+      text-align: center;
+      color: #475569;
+      font-size: 12px;
+    }
+
+    /* LOADING */
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 700px) {
+      .page {
+        width: min(100% - 24px, 600px);
+      }
+
+      nav {
+        height: 75px;
+      }
+
+      .nav-status {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 60px;
+      }
+
+      .hero h1 {
+        font-size: 49px;
+        letter-spacing: -2.5px;
+      }
+
+      .subtitle {
+        font-size: 15px;
+      }
+
+      .shortener {
+        flex-direction: column;
+        padding: 8px;
+      }
+
+      #shortenButton {
+        width: 100%;
+      }
+
+      .short-url-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .result-buttons {
+        width: 100%;
+      }
+
+      .copy-button,
+      .analytics-button {
+        flex: 1;
+      }
+
+      .result-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+        margin-top: 50px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page">
+
+    <!-- NAVBAR -->
+    <nav>
+      <a href="/" class="brand">
+        <span class="brand-icon">↗</span>
+        Shortly
+      </a>
+
+      <div class="nav-status">
+        <span class="status-dot"></span>
+        API Online
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <main class="hero">
+
+      <div class="eyebrow">
+        ⚡ Fast &amp; reliable URL shortening
+      </div>
+
+      <h1>
+        Shorten your links.
+        <span class="gradient-text">
+          Share anything.
+        </span>
+      </h1>
+
+      <p class="subtitle">
+        Turn long, complicated URLs into short and
+        shareable links in seconds.
+      </p>
+
+      <!-- URL FORM -->
+      <form id="shortenForm" class="shortener">
+
+        <div class="input-container">
+          <span class="link-icon">🔗</span>
+
+          <input
+            id="urlInput"
+            type="url"
+            placeholder="Paste your long URL here..."
+            autocomplete="off"
+            required
+          />
+        </div>
+
+        <button id="shortenButton" type="submit">
+          Shorten URL
+        </button>
+
+      </form>
+
+      <p class="hint">
+        Your shortened link will be ready instantly.
+      </p>
+
+      <div id="message" class="message"></div>
+
+      <!-- RESULT -->
+      <section id="result" class="result">
+
+        <div class="result-label">
+          Your shortened URL
+        </div>
+
+        <div class="short-url-row">
+
+          <a
+            id="shortUrl"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          ></a>
+
+          <div class="result-buttons">
+
+            <button
+              id="copyButton"
+              class="copy-button"
+              type="button"
+            >
+              Copy
+            </button>
+
+            <button
+              id="analyticsButton"
+              class="analytics-button"
+              type="button"
+            >
+              ↻ Analytics
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="result-meta">
+
+          <div class="meta-box">
+            <span class="meta-label">
+              Original URL
+            </span>
+
+            <span
+              id="originalUrl"
+              class="meta-value"
+              title=""
+            ></span>
+          </div>
+
+          <div class="meta-box">
+            <span class="meta-label">
+              Clicks
+            </span>
+
+            <span
+              id="clickCount"
+              class="meta-value"
+            >
+              0
+            </span>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- FEATURES -->
+      <section class="features">
+
+        <article class="feature">
+          <div class="feature-icon">⚡</div>
+
+          <h3>
+            Lightning Fast
+          </h3>
+
+          <p>
+            Redis-powered caching keeps frequently
+            accessed links fast and responsive.
+          </p>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">📊</div>
+
+          <h3>
+            Simple Analytics
+          </h3>
+
+          <p>
+            Track how many times your shortened
+            links have been clicked.
+          </p>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">🗄️</div>
+
+          <h3>
+            Persistent Storage
+          </h3>
+
+          <p>
+            MongoDB stores your shortened URLs
+            reliably and persistently.
+          </p>
+        </article>
+
+      </section>
+
+    </main>
+
+    <footer>
+      Built with Node.js · Express · MongoDB · Redis
+    </footer>
+
+  </div>
+
+  <script>
+    const shortenForm = document.getElementById("shortenForm");
+    const urlInput = document.getElementById("urlInput");
+    const shortenButton = document.getElementById("shortenButton");
+
+    const result = document.getElementById("result");
+    const shortUrl = document.getElementById("shortUrl");
+    const originalUrl = document.getElementById("originalUrl");
+    const clickCount = document.getElementById("clickCount");
+
+    const copyButton = document.getElementById("copyButton");
+    const analyticsButton =
+      document.getElementById("analyticsButton");
+
+    const message = document.getElementById("message");
+
+    let currentShortCode = null;
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = `message ${type}`;
+      message.style.display = "block";
+    }
+
+    function hideMessage() {
+      message.style.display = "none";
+    }
+
+    function setLoading(loading) {
+      shortenButton.disabled = loading;
+
+      if (loading) {
+        shortenButton.innerHTML =
+          '<span class="spinner"></span>Shortening...';
+      } else {
+        shortenButton.textContent = "Shorten URL";
+      }
+    }
+
+    /* CREATE SHORT URL */
+
+    shortenForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        showMessage("Please enter a URL.", "error");
+        return;
+      }
+
+      hideMessage();
+      result.style.display = "none";
+      setLoading(true);
+
+      try {
+        const response = await fetch("/api/shorten", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            originalUrl: url
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Unable to shorten URL."
+          );
+        }
+
+        currentShortCode = data.shortCode;
+
+        shortUrl.textContent = data.shortUrl;
+        shortUrl.href = data.shortUrl;
+
+        originalUrl.textContent = data.originalUrl;
+        originalUrl.title = data.originalUrl;
+
+        clickCount.textContent = "0";
+
+        result.style.display = "block";
+
+        showMessage(
+          "Your URL has been shortened successfully!",
+          "success"
+        );
+
+        urlInput.value = "";
+
+        result.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+      } catch (error) {
+        showMessage(
+          error.message || "Something went wrong.",
+          "error"
+        );
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    /* COPY SHORT URL */
+
+    copyButton.addEventListener("click", async () => {
+      const url = shortUrl.textContent;
+
+      if (!url) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(url);
+
+        copyButton.textContent = "✓ Copied";
+        copyButton.classList.add("copied");
+
+        setTimeout(() => {
+          copyButton.textContent = "Copy";
+          copyButton.classList.remove("copied");
+        }, 1800);
+
+      } catch {
+        showMessage(
+          "Unable to copy. Please copy the link manually.",
+          "error"
+        );
+      }
+    });
+
+    /* GET ANALYTICS */
+
+    async function loadAnalytics() {
+
+      if (!currentShortCode) {
+        return;
+      }
+
+      analyticsButton.disabled = true;
+      analyticsButton.textContent = "Loading...";
+
+      try {
+        const response = await fetch(
+          `/api/analytics/${currentShortCode}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Unable to load analytics."
+          );
+        }
+
+        clickCount.textContent = data.clicks;
+
+      } catch (error) {
+        showMessage(
+          error.message || "Unable to load analytics.",
+          "error"
+        );
+      } finally {
+        analyticsButton.disabled = false;
+        analyticsButton.textContent = "↻ Analytics";
+      }
+    }
+
+    analyticsButton.addEventListener(
+      "click",
+      loadAnalytics
+    );
+
+    urlInput.focus();
+  </script>
+
+</body>
+</html>

@@ -13,20 +13,22 @@ const app = express();
 
 app.use(express.json());
 
+// Serve frontend from public folder
+app.use(express.static("public"));
+
+// Connect databases
 connectDB();
 
 redisClient.connect();
 
+// API routes
 app.use("/api", urlRoutes);
-app.use("/", redirectRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-app.get("/", (req, res) => {
-  res.json({
-    message: "URL Shortener API is running",
-  });
-});
+// URL redirect route
+app.use("/", redirectRoutes);
 
+// Error handling middleware
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
